@@ -20,7 +20,7 @@ public class MemberController {
 		log.info("signup-------------------");
 	}
 
-	@PreAuthorize("hasRole('USER')")
+	@PreAuthorize("hasAnyRole('ADMIN')")
 	@GetMapping("/mypage")
 	public void mypage(){
 		log.info("mypage-------------------");

@@ -12,6 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.zerock.b52.security.CustomOAuth2UserService;
+import org.zerock.b52.security.handler.CustmOAuthSuccessHandler;
+import org.zerock.b52.security.handler.CustomAccessDeniedHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -23,6 +26,8 @@ import lombok.extern.log4j.Log4j2;
 public class CustomSecurityConfig {
 
 	private final DataSource dataSource;
+
+	private final CustomOAuth2UserService customOAuth2UserService;
 
 	@Bean
 	public PasswordEncoder passwordEncoder(){
@@ -43,7 +48,7 @@ public class CustomSecurityConfig {
 
 		log.info("filter chain------------------------------");
 
-		// /login 경로 로그인 페이지 띄우기
+		// login 경로 로그인 페이지 띄우기(시큐리티가 제공하는 기본 로그인 폼)
 
 		// http.formLogin(Customizer.withDefaults());
 
@@ -51,14 +56,25 @@ public class CustomSecurityConfig {
 			config.loginPage("/member/signin");
 		});
 
-		 http.rememberMe(config -> {
-        config.tokenRepository(persistentTokenRepository());
-        config.tokenValiditySeconds(60*60*24*7);
-      }); 
+		http.exceptionHandling(
+			config -> config.accessDeniedHandler(new CustomAccessDeniedHandler())
+		);
+
+		http.rememberMe(config -> {
+			config.tokenRepository(persistentTokenRepository());
+			config.tokenValiditySeconds(60*60*24*7);
+		}); 
 
 		http.csrf(config -> {
 			config.disable();
 		});
+
+		http.oauth2Login(config -> {
+			config.loginPage("/member/signin");
+			config.successHandler(new CustmOAuthSuccessHandler());
+		});
+
+
 
 		return http.build();
 	}
